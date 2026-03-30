@@ -1,0 +1,60 @@
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: socgen_postgres
+    restart: unless-stopped
+    shm_size: '256mb'
+    environment:
+      POSTGRES_DB:       socgen_fraud
+      POSTGRES_USER:     socgen
+      POSTGRES_PASSWORD: socgen_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socgen -d socgen_fraud"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: socgen_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  adminer:
+    image: adminer:4
+    container_name: socgen_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.1.0
+    container_name: socgen_mlflow
+    restart: unless-stopped
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri /mlflow/mlruns
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+      - mlflow_runs:/mlflow/mlruns
+
+volumes:
+  postgres_data:
+  mlflow_artifacts:
+  mlflow_runs:

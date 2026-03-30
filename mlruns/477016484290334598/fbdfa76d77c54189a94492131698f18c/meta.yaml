@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/tchib/Documents/SG_ML/mlruns/477016484290334598/fbdfa76d77c54189a94492131698f18c/artifacts
+end_time: 1774020305046
+entry_point_name: ''
+experiment_id: '477016484290334598'
+lifecycle_stage: active
+run_id: fbdfa76d77c54189a94492131698f18c
+run_name: lightgbm-smote-v4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774020291241
+status: 3
+tags: []
+user_id: tchib

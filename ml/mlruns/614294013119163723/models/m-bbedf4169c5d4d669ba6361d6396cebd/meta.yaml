@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/tchib/Documents/SG_ML/ml/mlruns/614294013119163723/models/m-bbedf4169c5d4d669ba6361d6396cebd/artifacts
+creation_timestamp: 1774622446984
+experiment_id: '614294013119163723'
+last_updated_timestamp: 1774622453616
+model_id: m-bbedf4169c5d4d669ba6361d6396cebd
+model_type: null
+name: lightgbm_model
+source_run_id: d63d9a310af843dca8e2ffa3941f23c4
+status: 2
+status_message: null

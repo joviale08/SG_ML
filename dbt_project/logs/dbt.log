@@ -1,0 +1,30 @@
+[0m10:28:38.995862 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000151612E67A0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015161663550>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000151625CC550>]}
+
+
+============================== 10:28:38.998597 | 963ced8a-9608-42a6-b50c-b0195afec3d6 ==============================
+[0m10:28:38.998597 [info ] [MainThread]: Running with dbt=1.11.7
+[0m10:28:38.998597 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'printer_width': '80', 'write_json': 'True', 'empty': 'None', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'profiles_dir': 'C:\\Users\\tchib\\.dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'invocation_command': 'dbt init socgen_fraud', 'indirect_selection': 'eager', 'use_colors': 'True', 'use_experimental_parser': 'False', 'log_path': 'logs'}
+[0m10:28:39.009725 [info ] [MainThread]: Creating dbt configuration folder at C:\Users\tchib\.dbt
+[0m10:28:39.011741 [debug] [MainThread]: Starter project path: C:\Users\tchib\Documents\SG_ML\.venv\lib\site-packages\dbt\include\starter_project
+[0m10:28:39.025249 [info ] [MainThread]: 
+Your new dbt project "socgen_fraud" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m10:28:39.025249 [info ] [MainThread]: Setting up your profile.
+[0m10:31:46.675129 [info ] [MainThread]: Profile socgen_fraud written to C:\Users\tchib\.dbt\profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m10:31:46.677145 [debug] [MainThread]: Command `dbt init` succeeded at 10:31:46.676133 after 187.76 seconds
+[0m10:31:46.677145 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000151612E67A0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000151623A2800>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015162624DF0>]}
+[0m10:31:46.678132 [debug] [MainThread]: Flushing usage events
+[0m10:31:47.090387 [debug] [MainThread]: An error was encountered while trying to flush usage events

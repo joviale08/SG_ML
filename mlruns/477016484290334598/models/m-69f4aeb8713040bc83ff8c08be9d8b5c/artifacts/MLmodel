@@ -1,0 +1,23 @@
+artifact_path: file:///C:/Users/tchib/Documents/SG_ML/mlruns/477016484290334598/models/m-69f4aeb8713040bc83ff8c08be9d8b5c/artifacts
+flavors:
+  lightgbm:
+    code: null
+    data: model.pkl
+    lgb_version: 4.6.0
+    model_class: lightgbm.sklearn.LGBMClassifier
+    serialization_format: cloudpickle
+    skops_trusted_types: null
+  python_function:
+    data: model.pkl
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.lightgbm
+    python_version: 3.10.0
+mlflow_version: 3.10.1
+model_id: m-69f4aeb8713040bc83ff8c08be9d8b5c
+model_size_bytes: 34414
+model_uuid: m-69f4aeb8713040bc83ff8c08be9d8b5c
+prompts: null
+run_id: fbdfa76d77c54189a94492131698f18c
+utc_time_created: '2026-03-20 15:25:01.306193'

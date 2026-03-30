@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: socgen_raw
+    database: socgen_fraud
+    schema: public
+    tables:
+      - name: clients
+      - name: comptes
+      - name: transactions
+      - name: fraud_labels
+      - name: card_blocks
+      - name: agences
