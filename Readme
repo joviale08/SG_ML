@@ -1,0 +1,302 @@
+# 🏦 Détection de Fraude Bancaire — Société Générale
+> Pipeline ML End-to-End · Machine Learning 
+
+## 📋 Présentation
+
+Ce projet simule un **pipeline complet de détection de fraude bancaire en conditions réelles**, inspiré des problématiques opérationnelles de la Société Générale. Il couvre la totalité de la chaîne de valeur data : de la génération des données jusqu'au déploiement d'une API de prédiction temps réel, en passant par le feature engineering, l'entraînement, le monitoring et la visualisation.
+
+### Performances
+
+| Métrique | Valeur | Standard requis |
+|---|---|---|
+| AUC-ROC | **0,887** | > 0,75 (Bâle III) |
+| Gini | **0,775** | > 0,65 (Bâle III) |
+| F1 Score | **0,824** | — |
+| Précision | **0,995** | — |
+| Recall | **0,704** | — |
+| Latence API | **34 ms** | < 200 ms |
+
+---
+
+## 🗂️ Dataset
+
+| Entité | Volume | Description |
+|---|---|---|
+| Clients | 20 000 | Profils pseudonymisés RGPD — segment, revenus, localisation |
+| Transactions | 3 490 690 | 12 mois d'historique — montant, canal, MCC, géolocalisation |
+| Fraudes | 69 954 (2 %) | 6 types : en ligne, skimming, usurpation, sans contact, étranger, fractionnée |
+| Agences | 10 | Réseau SocGen France |
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│              Data Layer                      │
+│     PostgreSQL · dbt · feature engineering  │
+└──────────────┬──────────────────────────────┘
+               │
+       ┌───────┴────────┐
+       ▼                ▼
+┌─────────────┐  ┌──────────────┐
+│Feature Store│  │Feature Store │
+│   Online    │  │   Offline    │
+│Redis :6379  │  │Postgres:5432 │
+└──────┬──────┘  └──────┬───────┘
+       └────────┬────────┘
+                ▼
+┌───────────────────────┐    ┌────────────────┐
+│      Modélisation     │◄──►│     MLOps      │
+│  LightGBM·SMOTE·SHAP  │    │MLflow :5001    │
+└───────────┬───────────┘    └────────────────┘
+            ▼
+┌───────────────────────┐
+│        Serving        │
+│  FastAPI · < 200 ms   │
+│       :8000           │
+└──────────┬────────────┘
+      ┌────┴────┐
+      ▼         ▼
+┌──────────┐ ┌──────────────┐
+│Monitoring│ │Visualisation │
+│Evidently │ │   Power BI   │
+└──────────┘ └──────────────┘
+```
+
+---
+
+## Stack technique
+
+| Couche | Technologies |
+|---|---|
+| **Données** | PostgreSQL 15, Redis 7, dbt 1.7 |
+| **ML** | Python 3.11, LightGBM 4.0, SMOTE (imbalanced-learn), SHAP |
+| **MLOps** | MLflow 3.10, Docker Compose |
+| **API** | FastAPI 0.110, Uvicorn, Pydantic |
+| **Monitoring** | Evidently AI |
+| **Visualisation** | Power BI, Adminer |
+
+---
+
+## Lancement rapide
+
+### Prérequis
+
+- Docker Desktop installé et démarré
+- Python 3.11+
+- dbt-postgres (`pip install dbt-postgres`)
+
+### 1 — Démarrer l'infrastructure
+
+```bash
+docker compose up -d
+```
+
+Vérifier que les 4 containers sont opérationnels :
+
+```bash
+docker compose ps
+```
+
+| Service | Port | URL |
+|---|---|---|
+| PostgreSQL | 5432 | — |
+| Redis | 6379 | — |
+| Adminer | 8080 | http://localhost:8080 |
+| MLflow | 5001 | http://localhost:5001 |
+
+### 2 — Générer les données
+
+```bash
+python seed.py
+```
+
+Résultat attendu :
+```
+Clients     : 20 000
+Transactions: 3 490 690
+Fraudes     : 69 954 (2.00%)
+```
+
+### 3 — Lancer le pipeline dbt
+
+```bash
+cd dbt_project
+dbt run
+```
+
+Résultat attendu : `PASS=5` (5 modèles en vert)
+
+### 4 — Entraîner le modèle
+
+```bash
+python train.py
+```
+
+Le run est automatiquement tracké dans MLflow → http://localhost:5001
+
+### 5 — Démarrer l'API
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Documentation Swagger → http://localhost:8000/docs
+
+### 6 — Générer les rapports de monitoring
+
+```bash
+python monitoring.py
+```
+
+Deux rapports HTML sont générés dans `monitoring/reports/` :
+- `drift_normal_*.html` — scénario stable (9% drift)
+- `drift_derive_*.html` — scénario de crise (27% drift)
+
+---
+
+## API — Endpoints
+
+### `GET /health`
+```json
+{
+  "status": "ok",
+  "model_version": "248bfd32",
+  "auc": 0.887
+}
+```
+
+### `POST /api/v1/predict`
+
+**Requête :**
+```json
+{
+  "montant": 850.0,
+  "distance_domicile_km": 320.5,
+  "nb_tx_1h": 3,
+  "canal": "web",
+  "pays": "MA",
+  "mcc_code": 5944,
+  "authentification": "3DS"
+}
+```
+
+**Réponse :**
+```json
+{
+  "is_fraud": true,
+  "score": 0.5524,
+  "threshold": 0.5488,
+  "risk_level": "moyen",
+  "top_features": [
+    { "feature": "distance_domicile_km", "impact": 0.2966 },
+    { "feature": "authentification_enc", "impact": -0.142 },
+    { "feature": "montant",              "impact": 0.0589 }
+  ],
+  "model_version": "248bfd32",
+  "processing_ms": 34.39
+}
+```
+
+---
+
+##  Structure du projet
+
+```
+socgen-fraud-detection/
+│
+├── docker-compose.yml          # Infrastructure complète
+├── seed.py                     # Génération données synthétiques
+├── train.py                    # Entraînement LightGBM + MLflow
+├── monitoring.py               # Rapports drift Evidently AI
+│
+├── app/
+│   ├── main.py                 # FastAPI — endpoints
+│   ├── predict.py              # Logique de prédiction + SHAP
+│   └── schemas.py              # Modèles Pydantic
+│
+├── dbt_project/
+│   ├── models/
+│   │   ├── staging/            # stg_transactions, stg_clients...
+│   │   ├── intermediate/       # int_fraud_features (40+ features)
+│   │   └── mart/               # mart_fraud_detection (table finale ML)
+│   └── dbt_project.yml
+│
+├── monitoring/
+│   └── reports/                # Rapports HTML Evidently
+│
+├── notebooks/
+│   ├── exploration.ipynb       # Analyse exploratoire
+│   └── shap_analysis.ipynb     # Analyse des explications SHAP
+│
+└── powerbi/
+    └── socgen_fraud.pbix       # Dashboard Power BI
+```
+
+---
+
+## Modèle — Décisions clés
+
+### Pourquoi LightGBM ?
+- Natif sur données tabulaires avec variables catégorielles
+- Entraînement rapide sur 3,5M de lignes
+- Compatible SHAP pour l'explicabilité RGPD
+
+### Pourquoi SMOTE ?
+- Le dataset est déséquilibré (2% de fraudes)
+- Un modèle naïf prédirait toujours "légitime" avec 98% de précision
+- SMOTE génère des exemples synthétiques de la classe minoritaire
+
+### Pourquoi un split temporel ?
+- Évite le data leakage : le modèle ne voit jamais de transactions futures pendant l'entraînement
+- Reproduit les conditions réelles de déploiement
+
+### Seuil de décision optimisé
+- Seuil par défaut : 0,5 → trop de faux négatifs (fraudes manquées)
+- Seuil optimisé : **0,5488** → calibré pour maximiser le F1-score et minimiser les pertes financières
+
+---
+
+## Monitoring — Seuils d'alerte (KRI)
+
+| Indicateur | Seuil warning | Seuil critique | Action |
+|---|---|---|---|
+| AUC-ROC | < 0,80 | < 0,75 | Réentraînement |
+| Drift colonnes | > 15% | > 20% | Réentraînement |
+| Recall | < 0,65 | < 0,60 | Révision seuil |
+| Latence API | > 150 ms | > 200 ms | Optimisation |
+| Taux fraude | > 2,5% | > 3% | Alerte équipe |
+
+---
+
+## Conformité réglementaire
+
+| Exigence | Implémentation |
+|---|---|
+| **RGPD Art. 22** — Explicabilité | SHAP top 5 features par prédiction |
+| **RGPD** — Pseudonymisation | Données clients anonymisées dans seed.py |
+| **Bâle III** — Gini > 0,65 | Gini = 0,775 ✅ |
+| **Audit trail** | MLflow — chaque run horodaté et versionné |
+| **DORA** — Résilience | Docker Compose + monitoring Evidently |
+
+---
+
+## Améliorations futures
+
+- [ ] Flux temps réel via **Apache Kafka**
+- [ ] Modèle d'ensemble LightGBM + XGBoost + réseau de neurones
+- [ ] Apprentissage en ligne pour adaptation continue
+- [ ] Détection d'anomalies non supervisée (Isolation Forest, Autoencoder)
+- [ ] Réentraînement automatique déclenché par les KRI
+- [ ] Tests A/B entre versions de modèle en production
+- [ ] Validation données avec **Great Expectations**
+- [ ] Alertes automatiques Power BI → Teams/e-mail
+- [ ] Contre-explication client (RGPD Art. 22 renforcé)
+- [ ] Audit trail complet conforme **DORA**
+
+---
+
+
+
+*Stack : Python · LightGBM · FastAPI · MLflow · dbt · PostgreSQL · Redis · Docker · Evidently AI · Power BI*
